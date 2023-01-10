@@ -1,0 +1,39 @@
+
+plugins {
+    id "groovy-gradle-plugin"
+    id "maven-publish"
+}
+
+dependencies {
+    implementation gradleApi()
+}
+
+group = 'moe.plushie.armourers_workshop'
+version = '1.0.0'
+archivesBaseName = "loom"
+
+gradlePlugin {
+    plugins {
+        loom {
+            id = "moe.plushie.armourers_workshop.loom"
+            displayName = "Armourer's Workshop Loom"
+            implementationClass = 'moe.plushie.armourers_workshop.loom.Main'
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url "https://repo.repsy.io/mvn/sagesse/core"
+            credentials {
+                username System.getenv("REPSY_ACTOR")
+                password System.getenv("REPSY_TOKEN")
+            }
+        }
+//        maven {
+//            url "$buildDir/repo"
+//        }
+    }
+}
+
