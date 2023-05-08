@@ -8,9 +8,9 @@ class Main implements Plugin<Project> {
     @Override
     void apply(Project project) {
         // create the custom tasks.
-        project.tasks.create("signJar", SignJarTask.class)
-        project.tasks.create("processPackResources", PackConfigTask.class)
-        project.tasks.create("processMixinResources", MixinConfigTask.class)
+        project.tasks.register("signJar", SignJarTask.class)
+        project.tasks.register("processPackResources", PackConfigTask.class)
+        project.tasks.register("processMixinResources", MixinConfigTask.class)
 
         // setup the custom tasks depends.
         project.tasks["signJar"].dependsOn("remapSourcesJar")
