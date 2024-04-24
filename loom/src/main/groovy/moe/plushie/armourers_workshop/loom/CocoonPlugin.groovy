@@ -37,9 +37,17 @@ class CocoonPlugin implements Plugin<Project> {
                 project.dependencies.modCompileOnly(lib)
             }
         }
+
         project.dependencies.extensions.modInclude = { lib ->
             project.dependencies.modApi(lib)
             project.dependencies.include(lib)
+        }
+
+        project.dependencies.extensions.modShadow = { lib ->
+            project.dependencies.implementation(lib)
+            project.dependencies.shadowCommon(lib) {
+                it.transitive = false
+            }
         }
     }
 }

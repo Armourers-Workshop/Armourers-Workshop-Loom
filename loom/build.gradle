@@ -9,7 +9,7 @@ dependencies {
 }
 
 group = 'moe.plushie.armourers_workshop'
-version = '2.0.1'
+version = '2.0.2'
 archivesBaseName = "loom"
 
 gradlePlugin {
