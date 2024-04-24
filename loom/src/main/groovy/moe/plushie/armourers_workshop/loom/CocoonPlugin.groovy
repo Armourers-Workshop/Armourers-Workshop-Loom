@@ -48,6 +48,11 @@ class CocoonPlugin implements Plugin<Project> {
             project.dependencies.shadowCommon(lib) {
                 it.transitive = false
             }
+            if (project.configurations.names.contains("forgeRuntimeLibrary")) {
+                project.dependencies.forgeRuntimeLibrary(lib) {
+                    it.transitive = false
+                }
+            }
         }
     }
 }
