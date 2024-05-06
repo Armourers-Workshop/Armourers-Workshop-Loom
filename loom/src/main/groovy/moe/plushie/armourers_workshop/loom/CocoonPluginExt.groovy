@@ -15,12 +15,7 @@ class CocoonPluginExt {
         this.platform = Platform.by(project);
     }
 
-    void license() {
-        project.loom.silentMojangMappingsLicense()
-    }
-
     void ide() {
-        license()
         project.architectury.platformSetupLoomIde()
     }
 

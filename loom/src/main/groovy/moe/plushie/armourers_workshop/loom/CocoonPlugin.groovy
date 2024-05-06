@@ -8,14 +8,13 @@ class CocoonPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-
-        // add
+        // get the project config of the minecraft version/
+        project.extensions.minecraft_version_number = ConfigTask.parseVersion(project.rootProject.architectury.minecraft, 0)
         project.extensions.create("cocoon", CocoonPluginExt.class, project)
-
 
         // create the custom tasks.
         project.tasks.register("signJar", SignJarTask.class)
-        project.tasks.register("processMixinResources", MixinConfigTask.class)
+        project.tasks.register("processMixinResources", ConfigTask.class)
 
         // setup the custom tasks depends.
         project.tasks["signJar"].dependsOn("remapSourcesJar")
@@ -32,6 +31,7 @@ class CocoonPlugin implements Plugin<Project> {
                 project.dependencies.modApi(lib)
             }
         }
+
         project.dependencies.extensions.modOptionalCompileOnly = { lib ->
             if (lib != "") {
                 project.dependencies.modCompileOnly(lib)
@@ -52,6 +52,26 @@ class CocoonPlugin implements Plugin<Project> {
                 project.dependencies.forgeRuntimeLibrary(lib) {
                     it.transitive = false
                 }
+            }
+        }
+
+        if (project.minecraft_version_number === 11605) {
+            fixes(project)
+        }
+    }
+
+    void fixes(Project project) {
+        project.configurations.configureEach {
+            it.resolutionStrategy {
+                it.force "org.lwjgl:lwjgl-stb:3.2.1"
+                it.force "org.lwjgl:lwjgl-opengl:3.2.1"
+                it.force "org.lwjgl:lwjgl-openal:3.2.1"
+                it.force "org.lwjgl:lwjgl-tinyfd:3.2.1"
+                it.force "org.lwjgl:lwjgl-jemalloc:3.2.1"
+                it.force "org.lwjgl:lwjgl-glfw:3.2.1"
+                it.force "org.lwjgl:lwjgl:3.2.1"
+
+                it.force "net.fabricmc:fabric-loader:0.15.10"
             }
         }
     }
