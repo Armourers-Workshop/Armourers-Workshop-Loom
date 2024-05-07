@@ -55,7 +55,7 @@ class CocoonPlugin implements Plugin<Project> {
             }
         }
 
-        if (project.minecraft_version_number === 11605) {
+        if (project.minecraft_version_number == 11605) {
             fixes(project)
         }
     }
