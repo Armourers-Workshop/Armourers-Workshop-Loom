@@ -57,7 +57,7 @@ class CocoonPluginExt {
             }
             project.dependencies.extensions.add("forge") {
                 // we need map forge dependencies to neo forge dependencies.
-                project.dependencies.neoForge it.replaceFirst(/net.minecraftforge:forge:(.+?)-/, /net.neoforged:neoforge:/)
+                project.dependencies.neoForge it.replaceFirst(/net.minecraftforge:forge:/, /net.neoforged:neoforge:/)
             }
         }
     }

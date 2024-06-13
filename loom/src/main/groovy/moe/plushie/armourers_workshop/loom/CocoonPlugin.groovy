@@ -3,6 +3,7 @@ package moe.plushie.armourers_workshop.loom
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 class CocoonPlugin implements Plugin<Project> {
 
@@ -63,6 +64,13 @@ class CocoonPlugin implements Plugin<Project> {
     void fixes(Project project) {
         project.configurations.configureEach {
             it.resolutionStrategy {
+                it.force "net.fabricmc:fabric-loader:0.15.10"
+
+                // 3.2.1 does not support arm64 architecture
+                if (DefaultNativePlatform.currentArchitecture.arm) {
+                    return
+                }
+
                 it.force "org.lwjgl:lwjgl-stb:3.2.1"
                 it.force "org.lwjgl:lwjgl-opengl:3.2.1"
                 it.force "org.lwjgl:lwjgl-openal:3.2.1"
@@ -70,8 +78,6 @@ class CocoonPlugin implements Plugin<Project> {
                 it.force "org.lwjgl:lwjgl-jemalloc:3.2.1"
                 it.force "org.lwjgl:lwjgl-glfw:3.2.1"
                 it.force "org.lwjgl:lwjgl:3.2.1"
-
-                it.force "net.fabricmc:fabric-loader:0.15.10"
             }
         }
     }
