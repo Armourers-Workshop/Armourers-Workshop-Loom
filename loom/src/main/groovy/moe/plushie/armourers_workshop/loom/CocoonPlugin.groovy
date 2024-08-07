@@ -1,8 +1,8 @@
 package moe.plushie.armourers_workshop.loom
 
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 class CocoonPlugin implements Plugin<Project> {
@@ -58,6 +58,7 @@ class CocoonPlugin implements Plugin<Project> {
 
         if (project.minecraft_version_number == 11605) {
             fixes(project)
+            downgrade(project)
         }
     }
 
@@ -78,6 +79,32 @@ class CocoonPlugin implements Plugin<Project> {
                 it.force "org.lwjgl:lwjgl-jemalloc:3.2.1"
                 it.force "org.lwjgl:lwjgl-glfw:3.2.1"
                 it.force "org.lwjgl:lwjgl:3.2.1"
+            }
+        }
+    }
+
+    void downgrade(Project project) {
+        // in develop mode, we don’t need to downgrade.
+        if (System.getProperty("jabel.active") != "true" || System.getProperty('idea.active') == "true") {
+            return
+        }
+
+        project.dependencies {
+            // add downgrade plugin in the compile time.
+            it.annotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
+        }
+
+        project.tasks.withType(JavaCompile) {
+            // force output java version to java 8.
+            it.options.release = 8
+        }
+
+        project.processResources {
+            // fix compatibility level to java 8 in mixin json.
+            it.filesMatching("*-mixins.json") {
+                it.filter {
+                    it.replaceAll(/("compatibilityLevel\"\s*:\s*")(JAVA_\d+)(")/, /$1JAVA_8$3/)
+                }
             }
         }
     }
