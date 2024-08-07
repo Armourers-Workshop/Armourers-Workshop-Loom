@@ -85,7 +85,7 @@ class CocoonPlugin implements Plugin<Project> {
 
     void downgrade(Project project) {
         // in develop mode, we don’t need to downgrade.
-        if (System.getProperty("jabel.active") != "true" || System.getProperty('idea.active') == "true") {
+        if (System.getProperty("jabel.active") == "false" || System.getProperty('idea.active') == "true") {
             return
         }
 
