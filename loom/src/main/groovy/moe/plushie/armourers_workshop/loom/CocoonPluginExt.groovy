@@ -45,7 +45,6 @@ class CocoonPluginExt {
             project.architectury.forge(settings.task)
             project.loom.forge {
                 it.convertAccessWideners = true
-                it.extraAccessWideners.add project.loom.accessWidenerPath.get().asFile.name
             }
         } else {
             project.architectury.neoForge(settings.task)

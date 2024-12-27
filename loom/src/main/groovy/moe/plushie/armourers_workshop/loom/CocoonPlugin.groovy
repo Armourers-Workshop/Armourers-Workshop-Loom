@@ -101,6 +101,7 @@ class CocoonPlugin implements Plugin<Project> {
 
         project.processResources {
             // fix compatibility level to java 8 in mixin json.
+			it.inputs.property('compatibilityLevel', 8)
             it.filesMatching("*-mixins.json") {
                 it.filter {
                     it.replaceAll(/("compatibilityLevel\"\s*:\s*")(JAVA_\d+)(")/, /$1JAVA_8$3/)
