@@ -81,6 +81,10 @@ class CocoonPlugin implements Plugin<Project> {
                 it.force "org.lwjgl:lwjgl:3.2.1"
             }
         }
+
+        project.dependencies {
+            it.runtimeOnly "org.slf4j:slf4j-api:1.7.25"
+        }
     }
 
     void downgrade(Project project) {
