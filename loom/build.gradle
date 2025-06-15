@@ -4,12 +4,23 @@ plugins {
     id "maven-publish"
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
 dependencies {
     implementation gradleApi()
+
+    compileOnly "org.apache.logging.log4j:log4j-api:2.22.1"
+
+    compileOnly "org.junit.jupiter:junit-jupiter:5.10.0"
+    compileOnly "org.junit.platform:junit-platform-engine:1.10.2"
+    compileOnly "org.junit.platform:junit-platform-launcher:1.10.2"
 }
 
 group = 'moe.plushie.armourers_workshop'
-version = '2.1.8'
+version = '2.2.0'
 archivesBaseName = "loom"
 targetCompatibility = sourceCompatibility = 8
 

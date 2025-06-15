@@ -5,7 +5,7 @@ import org.gradle.api.Project
 
 class CocoonPluginExt {
 
-    private static Project commonProject;
+    public static Project commonProject
 
     public final Project project
     public final Platform platform;
@@ -72,6 +72,8 @@ class CocoonPluginExt {
         project.configurations.create("common") {
             project.configurations.maybeCreate("compileClasspath").extendsFrom(it)
             project.configurations.maybeCreate("runtimeClasspath").extendsFrom(it)
+            project.configurations.maybeCreate("testCompileClasspath").extendsFrom(it)
+            project.configurations.maybeCreate("testRuntimeClasspath").extendsFrom(it)
             project.configurations.maybeCreate("development" + platform.name).extendsFrom(it)
         }
         // don't use shadow from the shadow plugin because we don't want IDEA to index this.

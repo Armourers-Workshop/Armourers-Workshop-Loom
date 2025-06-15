@@ -26,25 +26,27 @@ class CocoonPlugin implements Plugin<Project> {
             project.tasks["processMixinResources"].attach()
         }
 
+        project.extensions.create("useLoomTestPlatform", LoomTestPlatformExt.class, project)
+
         // setup the extension methods.
-        project.dependencies.extensions.modOptionalApi = { lib ->
+        project.extensions.modOptionalApi = { lib ->
             if (lib != "") {
                 project.dependencies.modApi(lib)
             }
         }
 
-        project.dependencies.extensions.modOptionalCompileOnly = { lib ->
+        project.extensions.modOptionalCompileOnly = { lib ->
             if (lib != "") {
                 project.dependencies.modCompileOnly(lib)
             }
         }
 
-        project.dependencies.extensions.modInclude = { lib ->
+        project.extensions.modInclude = { lib ->
             project.dependencies.modApi(lib)
             project.dependencies.include(lib)
         }
 
-        project.dependencies.extensions.modShadow = { lib ->
+        project.extensions.modShadow = { lib ->
             project.dependencies.implementation(lib)
             project.dependencies.shadowCommon(lib) {
                 it.transitive = false
@@ -105,7 +107,7 @@ class CocoonPlugin implements Plugin<Project> {
 
         project.processResources {
             // fix compatibility level to java 8 in mixin json.
-			it.inputs.property('compatibilityLevel', 8)
+            it.inputs.property('compatibilityLevel', 8)
             it.filesMatching("*-mixins.json") {
                 it.filter {
                     it.replaceAll(/("compatibilityLevel\"\s*:\s*")(JAVA_\d+)(")/, /$1JAVA_8$3/)
