@@ -26,7 +26,7 @@ public class LoomTestAgent implements Runnable {
     public LoomTestAgent(String[] args) {
         //--address=localhost:5009
         parse(args, "address", value -> {
-            String[] parts = value.split(":");
+            var parts = value.split(":");
             if (parts.length == 2) {
                 address = parts[0];
                 port = Integer.parseInt(parts[1]);
@@ -72,27 +72,27 @@ public class LoomTestAgent implements Runnable {
     @Override
     public void run() {
         // create a daemon thread.
-        Thread thread = new Thread(this::process, "junit-worker");
+        var thread = new Thread(this::process, "junit-worker");
         thread.setDaemon(true);
         thread.start();
     }
 
     private void process() {
         // create a socket to receive test command and the send result.
-        try (Socket socket = new Socket(address, port)) {
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+        try (var socket = new Socket(address, port)) {
+            var outputStream = new ObjectOutputStream(socket.getOutputStream());
             outputStream.flush();
-            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+            var inputStream = new ObjectInputStream(socket.getInputStream());
             while (true) {
-                String command = inputStream.readUTF();
+                var command = inputStream.readUTF();
                 switch (command) {
                     case "TEST_CLASS": {
-                        String name = inputStream.readUTF();
+                        var name = inputStream.readUTF();
                         dispatch(name, DiscoverySelectors::selectClass, outputStream);
                         break;
                     }
                     case "TEST_PACKAGE": {
-                        String name = inputStream.readUTF();
+                        var name = inputStream.readUTF();
                         dispatch(name, DiscoverySelectors::selectPackage, outputStream);
                         break;
                     }
@@ -116,14 +116,14 @@ public class LoomTestAgent implements Runnable {
         outputStream.flush();
 
         // set up the selector.
-        LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
-        for (String name : value.split(";")) {
+        var builder = LauncherDiscoveryRequestBuilder.request();
+        for (var name : value.split(";")) {
             builder.selectors(transform.apply(name));
         }
 
         // set up the logger and launch test.
-        LauncherDiscoveryRequest request = builder.build();
-        SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
+        var request = builder.build();
+        var summaryListener = new SummaryGeneratingListener();
         LauncherFactory.create().execute(request, summaryListener, LoggingListener.forBiConsumer((e, message) -> {
             try {
                 outputStream.writeUTF("TEST_LOG");
@@ -133,7 +133,7 @@ public class LoomTestAgent implements Runnable {
             }
         }));
 
-        LoomTestResult result = encode(summaryListener.getSummary());
+        var result = encode(summaryListener.getSummary());
 
         outputStream.writeUTF("TEST_END");
         result.writeObject(outputStream);
@@ -141,8 +141,8 @@ public class LoomTestAgent implements Runnable {
     }
 
     private void parse(String[] args, String opt, Consumer<String> consumer) {
-        String key = String.format("--%s=", opt);
-        for (String arg : args) {
+        var key = String.format("--%s=", opt);
+        for (var arg : args) {
             if (arg.startsWith(key)) {
                 consumer.accept(arg.substring(key.length()));
             }
@@ -150,7 +150,7 @@ public class LoomTestAgent implements Runnable {
     }
 
     private LoomTestResult encode(TestExecutionSummary summary) throws IOException {
-        LoomTestResult result = new LoomTestResult();
+        var result = new LoomTestResult();
         result.timeStarted = summary.getTimeStarted();
         result.timeFinished = summary.getTimeFinished();
         result.containersFound = summary.getContainersFoundCount();
@@ -166,7 +166,7 @@ public class LoomTestAgent implements Runnable {
         result.testsSucceeded = summary.getTestsSucceededCount();
         result.testsFailed = summary.getTestsFailedCount();
         result.failures = new ArrayList<>();
-        for (TestExecutionSummary.Failure failure : summary.getFailures()) {
+        for (var failure : summary.getFailures()) {
             result.failures.add(new LoomTestResult.Failure(failure.getTestIdentifier().toString(), failure.getException()));
         }
         return result;

@@ -1,11 +1,16 @@
 package moe.plushie.armourers_workshop.loom
 
+import moe.plushie.armourers_workshop.loom.task.ConfigTask
+import moe.plushie.armourers_workshop.loom.task.LoomTestTask
+import moe.plushie.armourers_workshop.loom.task.SignJarTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 class CocoonPlugin implements Plugin<Project> {
+
+    public static Project commonProject
 
     @Override
     void apply(Project project) {
@@ -14,6 +19,8 @@ class CocoonPlugin implements Plugin<Project> {
         project.extensions.create("cocoon", CocoonPluginExt.class, project)
 
         // create the custom tasks.
+        project.tasks.register("runClientTest", LoomTestTask.class)
+        project.tasks.register("runServerTest", LoomTestTask.class)
         project.tasks.register("signJar", SignJarTask.class)
         project.tasks.register("processMixinResources", ConfigTask.class)
 
@@ -23,10 +30,8 @@ class CocoonPlugin implements Plugin<Project> {
 
         // setup the evaluate tasks.
         project.beforeEvaluate {
-            project.tasks["processMixinResources"].attach()
+            project.tasks["processMixinResources"].setup()
         }
-
-        project.extensions.create("useLoomTestPlatform", LoomTestPlatformExt.class, project)
 
         // setup the extension methods.
         project.extensions.modOptionalApi = { lib ->

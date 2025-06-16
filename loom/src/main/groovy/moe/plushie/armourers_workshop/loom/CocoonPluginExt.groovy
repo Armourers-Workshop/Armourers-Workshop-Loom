@@ -5,8 +5,6 @@ import org.gradle.api.Project
 
 class CocoonPluginExt {
 
-    public static Project commonProject
-
     public final Project project
     public final Platform platform;
 
@@ -26,7 +24,11 @@ class CocoonPluginExt {
             // map neoforge to forge
             it.platformPackage "neoforge", "forge"
         }
-        commonProject = project
+        // disable common test task.
+        project.tasks["runClientTest"].enabled = false
+        project.tasks["runServerTest"].enabled = false
+        //
+        CocoonPlugin.commonProject = project
     }
 
     void fabric(Action<Settings> action = {}) {
@@ -59,6 +61,10 @@ class CocoonPluginExt {
                 project.dependencies.neoForge it.replaceFirst(/net.minecraftforge:forge:/, /net.neoforged:neoforge:/)
             }
         }
+    }
+
+    Project getCommonProject() {
+        return CocoonPlugin.commonProject
     }
 
     private void extendsFrom(Settings settings) {

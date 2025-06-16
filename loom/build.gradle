@@ -7,12 +7,14 @@ plugins {
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url "https://maven.architectury.dev/" }
 }
 
 dependencies {
     implementation gradleApi()
 
     compileOnly "org.apache.logging.log4j:log4j-api:2.22.1"
+    compileOnly "dev.architectury:architectury-loom:1.10.430"
 
     compileOnly "org.junit.jupiter:junit-jupiter:5.10.0"
     compileOnly "org.junit.platform:junit-platform-engine:1.10.2"
@@ -20,9 +22,9 @@ dependencies {
 }
 
 group = 'moe.plushie.armourers_workshop'
-version = '2.2.0'
+version = '2.2.2'
 archivesBaseName = "loom"
-targetCompatibility = sourceCompatibility = 8
+targetCompatibility = sourceCompatibility = 16
 
 gradlePlugin {
     plugins {

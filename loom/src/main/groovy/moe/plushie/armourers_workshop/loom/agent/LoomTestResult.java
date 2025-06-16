@@ -31,7 +31,7 @@ public class LoomTestResult {
         failures = new ArrayList<>();
     }
 
-    public LoomTestResult(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    public LoomTestResult(ObjectInputStream in) throws IOException {
         containersFound = in.readLong();
         containersStarted = in.readLong();
         containersSkipped = in.readLong();
@@ -158,7 +158,7 @@ public class LoomTestResult {
             this.exception = exception;
         }
 
-        public Failure(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        public Failure(ObjectInputStream in) throws IOException {
             testIdentifier = in.readUTF();
 //            exception = (Throwable) in.readObject();
         }
