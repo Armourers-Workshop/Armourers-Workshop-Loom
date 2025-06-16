@@ -1,8 +1,8 @@
 package moe.plushie.armourers_workshop.loom
 
-import moe.plushie.armourers_workshop.loom.task.ConfigTask
-import moe.plushie.armourers_workshop.loom.task.LoomTestTask
-import moe.plushie.armourers_workshop.loom.task.SignJarTask
+import moe.plushie.armourers_workshop.loom.core.task.ConfigTask
+import moe.plushie.armourers_workshop.loom.core.task.LoomTestTask
+import moe.plushie.armourers_workshop.loom.core.task.SignJarTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.compile.JavaCompile
@@ -30,8 +30,6 @@ class CocoonPlugin implements Plugin<Project> {
 
         // setup the evaluate tasks.
         project.beforeEvaluate {
-            (project.tasks["runClientTest"] as LoomTestTask).setup()
-            (project.tasks["runServerTest"] as LoomTestTask).setup()
             (project.tasks["processMixinResources"] as ConfigTask).setup()
         }
 

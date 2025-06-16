@@ -1,4 +1,4 @@
-package moe.plushie.armourers_workshop.loom.task;
+package moe.plushie.armourers_workshop.loom.core.task;
 
 import net.fabricmc.loom.extension.LoomGradleExtensionImpl;
 import org.gradle.api.DefaultTask;
@@ -56,6 +56,7 @@ public class ConfigTask extends DefaultTask {
         // so we need find all active mixins in the project,
         // and then add all mixins name to manifest.
         var processTask = (ProcessResources) getProject().getTasks().getByName("processResources");
+        processTask.getInputs().property("scannedMixinFiles", getOutputFiles().getFiles());
         processTask.filesMatching("fabric.mod.json", details -> {
             var mixins = new StringBuilder();
             getOutputFiles().forEach(file -> {
@@ -85,6 +86,7 @@ public class ConfigTask extends DefaultTask {
         // so we need find all active mixins in the project,
         // and then add all mixins name to manifest.
         var processTask = (ProcessResources) getProject().getTasks().getByName("processResources");
+        processTask.getInputs().property("scannedMixinFiles", getOutputFiles().getFiles());
         processTask.filesMatching("META-INF/mods.toml", details -> {
             var mixins = new StringBuilder("\n\n");
             getOutputFiles().forEach(file -> {

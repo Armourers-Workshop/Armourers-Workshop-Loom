@@ -1,4 +1,4 @@
-package moe.plushie.armourers_workshop.loom.agent;
+package moe.plushie.armourers_workshop.loom.core.agent;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

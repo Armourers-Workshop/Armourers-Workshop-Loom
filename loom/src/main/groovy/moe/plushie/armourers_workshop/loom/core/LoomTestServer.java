@@ -1,6 +1,6 @@
 package moe.plushie.armourers_workshop.loom.core;
 
-import moe.plushie.armourers_workshop.loom.agent.LoomTestResult;
+import moe.plushie.armourers_workshop.loom.core.agent.LoomTestResult;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -12,29 +12,22 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.List;
 
-public class LoomTestServer {
+public class LoomTestServer implements AutoCloseable {
 
     private final ServerSocket socket;
-    private ThrowableAction<Exception> timeoutHandler;
 
     public LoomTestServer(int port) throws IOException {
         this.socket = new ServerSocket(port);
-        this.socket.setSoTimeout(30000);// connect is 30s timeoutHandler.
     }
 
-    public void accept(ThrowableAction<Controller> action) {
+    public void accept(ThrowableAction<Controller> action, int timeout, Runnable timeoutHandler) throws IOException {
+        socket.setSoTimeout(timeout);
         var thread = new Thread(() -> {
-            try {
-                var controller = new Controller(socket.accept());
+            try (var controller = new Controller(socket.accept())) {
                 action.execute(controller);
-                controller.close();
             } catch (SocketTimeoutException e) {
-                try {
-                    if (timeoutHandler != null) {
-                        timeoutHandler.execute(e);
-                    }
-                } catch (Exception ignored) {
-                    // ig
+                if (timeoutHandler != null) {
+                    timeoutHandler.run();
                 }
             } catch (Throwable ignored) {
                 // ig
@@ -44,10 +37,7 @@ public class LoomTestServer {
         thread.start();
     }
 
-    public void setTimeoutHandler(ThrowableAction<Exception> action) {
-        this.timeoutHandler = action;
-    }
-
+    @Override
     public void close() throws IOException {
         socket.close();
     }

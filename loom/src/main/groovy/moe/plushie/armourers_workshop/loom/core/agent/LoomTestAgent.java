@@ -1,8 +1,7 @@
-package moe.plushie.armourers_workshop.loom.agent;
+package moe.plushie.armourers_workshop.loom.core.agent;
 
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.LoggingListener;
@@ -34,40 +33,7 @@ public class LoomTestAgent implements Runnable {
                 port = Integer.parseInt(parts[0]);
             }
         });
-
-
-//        // prepare test listeners.
-//        Logger logger = LogManager.getLogger(getClass());
-//        SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
-//        LoggingListener loggingListener = LoggingListener.forBiConsumer((throwable, message) -> {
-//            logger.info(message.get());
-//        });
-//
-//        // parse options and the add into request.
-//        LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
-//        parse(args, "select-classes", name -> builder.selectors(DiscoverySelectors.selectClass(name)));
-//        parse(args, "select-packages", name -> builder.selectors(DiscoverySelectors.selectPackage(name)));
-//        LauncherDiscoveryRequest request = builder.build();
-//
-//        // create launcher and config the listener.
-//        Launcher launcher = LauncherFactory.create();
-//        launcher.registerTestExecutionListeners(summaryListener);
-//        launcher.registerTestExecutionListeners(loggingListener);
-//
-//        this.logger = logger;
-//        this.summary = summaryListener::getSummary;
-//        this.launcher = launcher;
-//        this.request = request;
-//        this.exitOnEnd = args.contains("--exit-on-end");
     }
-
-//    public static void main(String[] args) {
-//        // create a agent and then run in daemon thread.
-//        LoomTestAgent agent = new LoomTestAgent(Arrays.asList(args));
-//        Thread thread = new Thread(agent, "junit-worker");
-//        thread.setDaemon(true);
-//        thread.start();
-//    }
 
     @Override
     public void run() {

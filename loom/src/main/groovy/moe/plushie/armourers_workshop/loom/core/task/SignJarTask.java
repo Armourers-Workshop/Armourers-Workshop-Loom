@@ -1,4 +1,4 @@
-package moe.plushie.armourers_workshop.loom.task;
+package moe.plushie.armourers_workshop.loom.core.task;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
