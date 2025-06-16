@@ -3,6 +3,7 @@ package moe.plushie.armourers_workshop.loom.core.task;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 
@@ -17,15 +18,19 @@ import java.util.LinkedHashMap;
 public abstract class SignJarTask extends DefaultTask {
 
     @Input
+    @Optional
     public abstract Property<String> getAlias();
 
     @Input
+    @Optional
     public abstract Property<String> getKeyPass();
 
     @Input
+    @Optional
     public abstract Property<String> getKeyStore();
 
     @Input
+    @Optional
     public abstract Property<String> getKeyStorePass();
 
     public SignJarTask() {

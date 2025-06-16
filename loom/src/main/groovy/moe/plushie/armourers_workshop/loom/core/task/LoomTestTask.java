@@ -65,6 +65,15 @@ public abstract class LoomTestTask extends JavaExec {
                 execSpec.classpath(getClass().getProtectionDomain().getCodeSource().getLocation());
             }
 
+            // setup agree to the EULA in order to run the server.
+            var eulaFile = getProject().file("run/eula.txt");
+            if (!eulaFile.exists()) {
+                eulaFile.getParentFile().mkdirs();
+                var properties = new Properties();
+                properties.put("eula", "true");
+                properties.store(new FileOutputStream(eulaFile), "By changing the setting below to TRUE you are indicating your agreement to our EULA (https://aka.ms/MinecraftEULA).");
+            }
+
             // configures the proxy task with generated configuration and executes its .
             var proxyTask = getProxyTask();
             var jvmArgs = new ArrayList<>(proxyTask.getJvmArgs());
