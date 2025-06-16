@@ -26,21 +26,19 @@ public abstract class LoomTestTask extends JavaExec {
     @Input
     public abstract ListProperty<String> getTestClasses();
 
-    public LoomTestTask() throws IOException {
-        var name = getName().replaceAll("run(.+)Test", "$1");
+    public LoomTestTask() {
         setGroup("loom");
-        setDescription("Starts the " + name.toLowerCase() + " test with run configuration");
-        setup((JavaExec) getProject().getTasks().getAt("run" + name));
+        setDescription("Starts the " + getType().toLowerCase() + " test with run configuration");
     }
 
     @Override
     public void exec() {
         // this is a dummy exec task.
-        System.out.println("run " + this);
     }
 
-    private void setup(JavaExec task) throws IOException {
+    public void setup() throws IOException {
         // setup the junit config.
+        var task = (JavaExec) getProject().getTasks().getAt("run" + getType());
         var server = new LoomTestServer(0);
         var configFile = getProject().file(".gradle/junit/" + getName() + ".xml");
         if (configFile.exists()) {
@@ -51,6 +49,7 @@ public abstract class LoomTestTask extends JavaExec {
         task.jvmArgs("-Djunit.dli.config=" + configFile.getPath());
         // setup the task depends.
         dependsOn(task);
+        task.onlyIf(it -> isEnabled());
         task.doFirst(safeCall(it -> {
             // setup the default arguments.
             jvmArgs(String.format("--address=%s:%d", server.getAddress(), server.getPort()));
@@ -116,6 +115,10 @@ public abstract class LoomTestTask extends JavaExec {
     public LoomTestTask selectPackage(String... packages) {
         getTestPackages().addAll(packages);
         return this;
+    }
+
+    public String getType() {
+        return getName().replaceAll("run(.+)Test", "$1");
     }
 
     private <T> Action<T> safeCall(ThrowableAction<T> action) {

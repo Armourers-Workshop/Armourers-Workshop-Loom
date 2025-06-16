@@ -22,7 +22,7 @@ dependencies {
 }
 
 group = 'moe.plushie.armourers_workshop'
-version = '2.2.2'
+version = '2.2.3'
 archivesBaseName = "loom"
 targetCompatibility = sourceCompatibility = 16
 

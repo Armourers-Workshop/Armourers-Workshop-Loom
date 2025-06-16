@@ -30,7 +30,9 @@ class CocoonPlugin implements Plugin<Project> {
 
         // setup the evaluate tasks.
         project.beforeEvaluate {
-            project.tasks["processMixinResources"].setup()
+            (project.tasks["runClientTest"] as LoomTestTask).setup()
+            (project.tasks["runServerTest"] as LoomTestTask).setup()
+            (project.tasks["processMixinResources"] as ConfigTask).setup()
         }
 
         // setup the extension methods.
