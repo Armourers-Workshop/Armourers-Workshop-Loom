@@ -15,9 +15,12 @@ import org.gradle.process.internal.DefaultJavaExecSpec;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public abstract class LoomTestTask extends JavaExec {
@@ -32,7 +35,6 @@ public abstract class LoomTestTask extends JavaExec {
         setGroup("loom");
         setDescription("Starts the " + getType().toLowerCase() + " test with run configuration");
         setDependsOn(getProxyTask().getDependsOn());
-        dependsOn("test");
     }
 
     public LoomTestTask selectClass(String... classes) {
@@ -47,11 +49,7 @@ public abstract class LoomTestTask extends JavaExec {
 
     @Override
     public void exec() {
-        var thread = Thread.currentThread();
         try (var server = new LoomTestServer(0)) {
-            // we need to wait (30s) for the host process to connect.
-            server.accept(this::handle, 30000, thread::interrupt);
-
             // prepares the Java execution specification for running tests with the LoomTestAgent.
             var execSpec = getObjectFactory().newInstance(DefaultJavaExecSpec.class);
             copyTo(execSpec);
@@ -64,6 +62,8 @@ public abstract class LoomTestTask extends JavaExec {
                 execSpec.getMainClass().set("moe.plushie.armourers_workshop.loom.core.agent.LoomTestAgent");
                 execSpec.classpath(getClass().getProtectionDomain().getCodeSource().getLocation());
             }
+            execSpec.systemProperty("junit.dli.task.name", getName());
+            execSpec.systemProperty("junit.dli.task.type", getType().toLowerCase());
 
             // setup agree to the EULA in order to run the server.
             var eulaFile = getProject().file("run/eula.txt");
@@ -74,7 +74,11 @@ public abstract class LoomTestTask extends JavaExec {
                 properties.store(new FileOutputStream(eulaFile), "By changing the setting below to TRUE you are indicating your agreement to our EULA (https://aka.ms/MinecraftEULA).");
             }
 
-            // configures the proxy task with generated configuration and executes its .
+            // we need to wait (30s) for the host process to connect.
+            var thread = Thread.currentThread();
+            server.accept(this::handle, 30000, thread::interrupt);
+
+            // configures the proxy task with generated configuration and execute its.
             var proxyTask = getProxyTask();
             var jvmArgs = new ArrayList<>(proxyTask.getJvmArgs());
             proxyTask.jvmArgs("-Djunit.dli.config=" + getConfigFile(execSpec).getPath());
@@ -84,26 +88,17 @@ public abstract class LoomTestTask extends JavaExec {
             proxyTask.setJvmArgs(jvmArgs);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new GradleException(e.getMessage(), e);
+            throw new GradleException(e.getMessage());
         }
     }
 
     protected void handle(LoomTestServer.Controller controller) throws IOException {
-        var failures = 0;
-        var classes = getTestClasses().get();
-        if (!classes.isEmpty()) {
-            var result = controller.testClasses(classes);
-            System.out.println(result);
-            failures += result.failures.size();
-        }
-        var packages = getTestPackages().get();
-        if (!packages.isEmpty()) {
-            var result = controller.testPackage(packages);
-            System.out.println(result);
-            failures += result.failures.size();
-        }
-        controller.exit(failures);
+        // run test with all selectors.
+        controller.setLogger(getLogger());
+        var results = controller.run(getTestClasses().get(), getTestPackages().get());
+        results.printTo(new PrintWriter(System.out));
+        results.printFailuresTo(new PrintWriter(System.out));
+        controller.exit((int) results.getTotalFailureCount());
     }
 
     @Internal
@@ -129,10 +124,17 @@ public abstract class LoomTestTask extends JavaExec {
         } else {
             configFile.getParentFile().mkdirs();
         }
+        var jvmArgs = new ArrayList<String>();
+        spec.getJvmArgs().forEach(jvmArgs::add);
+        spec.getSystemProperties().forEach((key, value) -> {
+            var encodedValue = URLEncoder.encode(value.toString(), StandardCharsets.UTF_8);
+            jvmArgs.add(String.format("-D%s=%s", key, encodedValue));
+        });
+
         var properties = new Properties();
         properties.put("junit.dli.main.class", spec.getMainClass().get());
         properties.put("junit.dli.classpath", String.join(File.pathSeparator, spec.getClasspath().getFiles().stream().map(File::getPath).toList()));
-        properties.put("junit.dli.args", String.join(" ", Objects.requireNonNull(spec.getJvmArgs())));
+        properties.put("junit.dli.args", String.join(" ", jvmArgs));
         properties.storeToXML(new FileOutputStream(configFile), null);
         return configFile;
     }

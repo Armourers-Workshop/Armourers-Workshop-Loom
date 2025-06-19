@@ -11,8 +11,14 @@ import org.junit.platform.launcher.listeners.TestExecutionSummary;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.Socket;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -20,11 +26,16 @@ import java.util.function.Function;
 public class LoomTestAgent implements Runnable {
 
     private String address = "localhost";
-    private int port = 5200;
+    private int port = 5210;
 
     public LoomTestAgent(String[] args) {
+        //-Dname=value
+        parseProperty(args, (key, value) -> {
+            var decodedValue = URLDecoder.decode(value, StandardCharsets.UTF_8);
+            System.setProperty(key, decodedValue);
+        });
         //--address=localhost:5009
-        parse(args, "address", value -> {
+        parseArg(args, "address", value -> {
             var parts = value.split(":");
             if (parts.length == 2) {
                 address = parts[0];
@@ -52,14 +63,10 @@ public class LoomTestAgent implements Runnable {
             while (true) {
                 var command = inputStream.readUTF();
                 switch (command) {
-                    case "TEST_CLASS": {
-                        var name = inputStream.readUTF();
-                        dispatch(name, DiscoverySelectors::selectClass, outputStream);
-                        break;
-                    }
-                    case "TEST_PACKAGE": {
-                        var name = inputStream.readUTF();
-                        dispatch(name, DiscoverySelectors::selectPackage, outputStream);
+                    case "RUN": {
+                        var classes = inputStream.readUTF();
+                        var packages = inputStream.readUTF();
+                        test(classes, packages, outputStream);
                         break;
                     }
                     case "EXIT": {
@@ -77,15 +84,14 @@ public class LoomTestAgent implements Runnable {
         }
     }
 
-    private void dispatch(String value, Function<String, DiscoverySelector> transform, ObjectOutputStream outputStream) throws IOException {
+    private void test(String classes, String packages, ObjectOutputStream outputStream) throws IOException {
         outputStream.writeUTF("TEST_START");
         outputStream.flush();
 
         // set up the selector.
         var builder = LauncherDiscoveryRequestBuilder.request();
-        for (var name : value.split(";")) {
-            builder.selectors(transform.apply(name));
-        }
+        builder.selectors(selector(classes, DiscoverySelectors::selectClass));
+        builder.selectors(selector(packages, DiscoverySelectors::selectPackage));
 
         // set up the logger and launch test.
         var request = builder.build();
@@ -106,7 +112,7 @@ public class LoomTestAgent implements Runnable {
         outputStream.flush();
     }
 
-    private void parse(String[] args, String opt, Consumer<String> consumer) {
+    private void parseArg(String[] args, String opt, Consumer<String> consumer) {
         var key = String.format("--%s=", opt);
         for (var arg : args) {
             if (arg.startsWith(key)) {
@@ -114,6 +120,31 @@ public class LoomTestAgent implements Runnable {
             }
         }
     }
+
+    private void parseProperty(String[] args, BiConsumer<String, String> consumer) {
+        var key = "-D";
+        for (var arg : args) {
+            if (arg.startsWith(key)) {
+                var value = arg.substring(key.length()).split("=");
+                if (value.length == 2) {
+                    consumer.accept(value[0], value[1]);
+                } else {
+                    consumer.accept(value[0], "");
+                }
+            }
+        }
+    }
+
+    private List<? extends DiscoverySelector> selector(String names, Function<String, DiscoverySelector> transform) {
+        var selectors = new ArrayList<DiscoverySelector>();
+        for (var name : names.split(";")) {
+            if (!name.isEmpty()) {
+                selectors.add(transform.apply(name));
+            }
+        }
+        return selectors;
+    }
+
 
     private LoomTestResult encode(TestExecutionSummary summary) throws IOException {
         var result = new LoomTestResult();
@@ -135,6 +166,15 @@ public class LoomTestAgent implements Runnable {
         for (var failure : summary.getFailures()) {
             result.failures.add(new LoomTestResult.Failure(failure.getTestIdentifier().toString(), failure.getException()));
         }
+
+        var printContents = new StringWriter();
+        summary.printTo(new PrintWriter(printContents));
+        result.printContents = printContents.toString();
+
+        var printFailuresContents = new StringWriter();
+        summary.printFailuresTo(new PrintWriter(printFailuresContents), 20);
+        result.printFailuresContents = printFailuresContents.toString();
+
         return result;
     }
 }

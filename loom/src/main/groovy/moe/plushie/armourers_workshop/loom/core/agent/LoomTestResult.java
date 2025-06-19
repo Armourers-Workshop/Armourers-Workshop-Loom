@@ -3,6 +3,7 @@ package moe.plushie.armourers_workshop.loom.core.agent;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +26,12 @@ public class LoomTestResult {
     public long timeStartedNanos;
     public long timeFinished;
     public long timeFinishedNanos;
-    public List<Failure> failures;
+
+    public List<Failure> failures = new ArrayList<>();
+    public String printContents = "";
+    public String printFailuresContents = "";
 
     public LoomTestResult() {
-        failures = new ArrayList<>();
     }
 
     public LoomTestResult(ObjectInputStream in) throws IOException {
@@ -48,7 +51,8 @@ public class LoomTestResult {
         timeStartedNanos = in.readLong();
         timeFinished = in.readLong();
         timeFinishedNanos = in.readLong();
-        failures = new ArrayList<Failure>();
+        printContents = in.readUTF();
+        printFailuresContents = in.readUTF();
         int size = in.readInt();
         for (int i = 0; i < size; i++) {
             failures.add(new Failure(in));
@@ -72,9 +76,23 @@ public class LoomTestResult {
         out.writeLong(timeStartedNanos);
         out.writeLong(timeFinished);
         out.writeLong(timeFinishedNanos);
+        out.writeUTF(printContents);
+        out.writeUTF(printFailuresContents);
         out.writeInt(failures.size());
         for (Failure failure : failures) {
             failure.writeObject(out);
+        }
+    }
+
+    public void printTo(PrintWriter writer) {
+        writer.println(printContents);
+        writer.flush();
+    }
+
+    public void printFailuresTo(PrintWriter writer) {
+        if (getTotalFailureCount() > 0) {
+            writer.println(printFailuresContents);
+            writer.flush();
         }
     }
 
@@ -150,26 +168,26 @@ public class LoomTestResult {
 
     public static class Failure {
 
-        private String testIdentifier;
+        private String identifier;
         private Throwable exception;
 
-        public Failure(String testIdentifier, Throwable exception) {
-            this.testIdentifier = testIdentifier;
+        public Failure(String identifier, Throwable exception) {
+            this.identifier = identifier;
             this.exception = exception;
         }
 
         public Failure(ObjectInputStream in) throws IOException {
-            testIdentifier = in.readUTF();
+            identifier = in.readUTF();
 //            exception = (Throwable) in.readObject();
         }
 
         public void writeObject(ObjectOutputStream out) throws IOException {
-            out.writeUTF(testIdentifier);
+            out.writeUTF(identifier);
 //            out.writeObject(exception);
         }
 
-        public String getTestIdentifier() {
-            return testIdentifier;
+        public String getIdentifier() {
+            return identifier;
         }
 
         public Throwable getException() {

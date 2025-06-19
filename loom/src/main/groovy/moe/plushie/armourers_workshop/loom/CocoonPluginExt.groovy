@@ -1,5 +1,6 @@
 package moe.plushie.armourers_workshop.loom
 
+import moe.plushie.armourers_workshop.loom.core.task.LoomTestTask
 import org.gradle.api.Action
 import org.gradle.api.Project
 
@@ -114,6 +115,15 @@ class CocoonPluginExt {
             def commonSources = commonProject.sourcesJar
             it.dependsOn commonSources
             it.from commonSources.archiveFile.map { project.zipTree(it) }
+        }
+
+        project.tasks.named("runClientTest") {
+            it.dependsOn commonProject.tasks.named("compileTestJava")
+            it.dependsOn project.tasks.named("compileTestJava")
+        }
+        project.tasks.named("runServerTest") {
+            it.dependsOn commonProject.tasks.named("compileTestJava")
+            it.dependsOn project.tasks.named("compileTestJava")
         }
 
         project.components.java {
