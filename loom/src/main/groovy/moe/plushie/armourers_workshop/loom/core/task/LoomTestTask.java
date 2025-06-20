@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -66,13 +67,18 @@ public abstract class LoomTestTask extends JavaExec {
             execSpec.systemProperty("junit.dli.task.minecraft", getProject().findProperty("minecraft_version"));
             execSpec.systemProperty("junit.dli.task.minecraft.int", getProject().findProperty("minecraft_version_number"));
 
-            // setup agree to the EULA in order to run the server.
-            var eulaFile = getProject().file("run/eula.txt");
-            if (!eulaFile.exists()) {
-                eulaFile.getParentFile().mkdirs();
-                var properties = new Properties();
-                properties.put("eula", "true");
-                properties.store(new FileOutputStream(eulaFile), "By changing the setting below to TRUE you are indicating your agreement to our EULA (https://aka.ms/MinecraftEULA).");
+            // copy all test resources into run directory.
+            for (var project : getProject().getRootProject().getAllprojects()) {
+                var sourceSets = ((SourceSetContainer) project.getProperties().get("sourceSets")).getAt("test");
+                for (var resources : sourceSets.getResources().getSrcDirs()) {
+                    for (var resource : project.fileTree(resources).getFiles()) {
+                        var target = getProject().file("run" + resource.getPath().substring(resources.getPath().length()));
+                        if (!target.exists()) {
+                            target.getParentFile().mkdirs();
+                            Files.copy(resource.toPath(), target.toPath());
+                        }
+                    }
+                }
             }
 
             // we need to wait (30s) for the host process to connect.
@@ -88,7 +94,6 @@ public abstract class LoomTestTask extends JavaExec {
                 action.execute(proxyTask);
             }
             proxyTask.setJvmArgs(jvmArgs);
-
         } catch (Exception e) {
             throw new GradleException(e.getMessage());
         }
