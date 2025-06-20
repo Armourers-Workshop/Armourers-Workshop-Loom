@@ -20,7 +20,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public abstract class LoomTestTask extends JavaExec {
@@ -64,6 +63,8 @@ public abstract class LoomTestTask extends JavaExec {
             }
             execSpec.systemProperty("junit.dli.task.name", getName());
             execSpec.systemProperty("junit.dli.task.type", getType().toLowerCase());
+            execSpec.systemProperty("junit.dli.task.minecraft", getProject().findProperty("minecraft_version"));
+            execSpec.systemProperty("junit.dli.task.minecraft.int", getProject().findProperty("minecraft_version_number"));
 
             // setup agree to the EULA in order to run the server.
             var eulaFile = getProject().file("run/eula.txt");
@@ -82,6 +83,7 @@ public abstract class LoomTestTask extends JavaExec {
             var proxyTask = getProxyTask();
             var jvmArgs = new ArrayList<>(proxyTask.getJvmArgs());
             proxyTask.jvmArgs("-Djunit.dli.config=" + getConfigFile(execSpec).getPath());
+            //proxyTask.jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5009");
             for (var action : proxyTask.getActions()) {
                 action.execute(proxyTask);
             }

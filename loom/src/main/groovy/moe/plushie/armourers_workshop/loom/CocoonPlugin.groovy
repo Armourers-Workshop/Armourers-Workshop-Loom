@@ -15,7 +15,8 @@ class CocoonPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         // get the project config of the minecraft version/
-        project.extensions.minecraft_version_number = ConfigTask.parseVersion(project.rootProject.architectury.minecraft, 0)
+        project.extensions.minecraft_version = project.rootProject.architectury.minecraft
+        project.extensions.minecraft_version_number = ConfigTask.parseVersion(project.extensions.minecraft_version, 0)
         project.extensions.create("cocoon", CocoonPluginExt.class, project)
 
         // create the custom tasks.
@@ -103,6 +104,7 @@ class CocoonPlugin implements Plugin<Project> {
         project.dependencies {
             // add downgrade plugin in the compile time.
             it.annotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
+            it.testAnnotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
         }
 
         project.tasks.withType(JavaCompile) {

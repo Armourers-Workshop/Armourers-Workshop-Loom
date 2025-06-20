@@ -1,6 +1,5 @@
 package moe.plushie.armourers_workshop.loom
 
-import moe.plushie.armourers_workshop.loom.core.task.LoomTestTask
 import org.gradle.api.Action
 import org.gradle.api.Project
 
@@ -117,6 +116,9 @@ class CocoonPluginExt {
             it.from commonSources.archiveFile.map { project.zipTree(it) }
         }
 
+        // inherit compile dependency from the common test classes.
+        project.sourceSets.test.compileClasspath += commonProject.sourceSets.test.output
+
         project.tasks.named("runClientTest") {
             it.dependsOn commonProject.tasks.named("compileTestJava")
             it.dependsOn project.tasks.named("compileTestJava")
@@ -163,7 +165,7 @@ class CocoonPluginExt {
                 case "forge": return FORGE
                 case "neoforge": return NEOFORGE
             }
-            return UNKNOWN;
+            return UNKNOWN
         }
     }
 }
