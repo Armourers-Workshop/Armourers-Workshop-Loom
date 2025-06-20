@@ -97,11 +97,13 @@ public class LoomTestAgent implements Runnable {
         var request = builder.build();
         var summaryListener = new SummaryGeneratingListener();
         LauncherFactory.create().execute(request, summaryListener, LoggingListener.forBiConsumer((e, message) -> {
-            try {
-                outputStream.writeUTF("TEST_LOG");
-                outputStream.writeUTF(message.get());
-                outputStream.flush();
-            } catch (Exception ignored) {
+            synchronized (this) {
+                try {
+                    outputStream.writeUTF("TEST_LOG");
+                    outputStream.writeUTF(message.get());
+                    outputStream.flush();
+                } catch (Exception ignored) {
+                }
             }
         }));
 

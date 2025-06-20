@@ -20,6 +20,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 @SuppressWarnings("unused")
@@ -67,12 +68,12 @@ public abstract class LoomTestTask extends JavaExec {
             execSpec.systemProperty("junit.dli.task.minecraft", getProject().findProperty("minecraft_version"));
             execSpec.systemProperty("junit.dli.task.minecraft.int", getProject().findProperty("minecraft_version_number"));
 
-            // copy all test resources into run directory.
-            for (var project : getProject().getRootProject().getAllprojects()) {
+            // copy fabric/forge/common project run resources.
+            for (var project : List.of(getProject(), getCommonProject())) {
                 var sourceSets = ((SourceSetContainer) project.getProperties().get("sourceSets")).getAt("test");
                 for (var resources : sourceSets.getResources().getSrcDirs()) {
-                    for (var resource : project.fileTree(resources).getFiles()) {
-                        var target = getProject().file("run" + resource.getPath().substring(resources.getPath().length()));
+                    for (var resource : project.fileTree(new File(resources, "run")).getFiles()) {
+                        var target = getProject().file(resource.getPath().substring(resources.getPath().length() + 1));
                         if (!target.exists()) {
                             target.getParentFile().mkdirs();
                             Files.copy(resource.toPath(), target.toPath());
