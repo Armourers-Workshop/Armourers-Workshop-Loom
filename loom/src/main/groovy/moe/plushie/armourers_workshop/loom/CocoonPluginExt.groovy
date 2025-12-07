@@ -1,16 +1,21 @@
 package moe.plushie.armourers_workshop.loom
 
+import net.fabricmc.loom.api.ModSettings
+import net.fabricmc.loom.extension.LoomGradleExtensionApiImpl
 import org.gradle.api.Action
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 
 class CocoonPluginExt {
 
     public final Project project
-    public final Platform platform;
+    public final Platform platform
+
+    public boolean compileOnlyMode = true
 
     CocoonPluginExt(Project project) {
         this.project = project
-        this.platform = Platform.by(project);
+        this.platform = Platform.by(project)
     }
 
     void ide() {
@@ -29,11 +34,13 @@ class CocoonPluginExt {
         project.tasks["runServerTest"].enabled = false
         //
         CocoonPlugin.commonProject = project
+        setupLoom()
     }
 
     void fabric(Action<Settings> action = {}) {
         var settings = new Settings()
         action.execute(settings)
+        setupLoom()
         extendsFrom(settings)
         project.architectury.fabric(settings.task)
     }
@@ -42,6 +49,7 @@ class CocoonPluginExt {
         var settings = new Settings()
         settings.platformPackage = "forge"
         action.execute(settings)
+        setupLoom()
         extendsFrom(settings)
         if (platform == Platform.FORGE) {
             project.architectury.forge(settings.task)
@@ -63,8 +71,18 @@ class CocoonPluginExt {
         }
     }
 
+    void injectables() {
+        compileOnlyMode = false
+    }
+
     Project getCommonProject() {
         return CocoonPlugin.commonProject
+    }
+
+    private void setupLoom() {
+        if (compileOnlyMode) {
+            project.architectury.compileOnly()
+        }
     }
 
     private void extendsFrom(Settings settings) {
@@ -80,10 +98,22 @@ class CocoonPluginExt {
             project.configurations.maybeCreate("runtimeClasspath").extendsFrom(it)
             project.configurations.maybeCreate("testCompileClasspath").extendsFrom(it)
             project.configurations.maybeCreate("testRuntimeClasspath").extendsFrom(it)
-            project.configurations.maybeCreate("development" + platform.name).extendsFrom(it)
+            // to use injectable mod, we need add the developmentFabric/developmentForge into source set.
+            if (!compileOnlyMode) {
+                project.configurations.maybeCreate("development" + platform.name).extendsFrom(it)
+            }
         }
         // don't use shadow from the shadow plugin because we don't want IDEA to index this.
         project.configurations.create("shadowCommon")
+
+        // to use compile only mode, we need add the source into loom mods.
+        if (compileOnlyMode) {
+            project.loom.mods {
+                var settings1 = it.maybeCreate("main")
+                settings1.sourceSet project.sourceSets.main
+                settings1.sourceSet commonProject.sourceSets.main
+            }
+        }
 
         // inherit dependency the common classes.
         project.dependencies {
