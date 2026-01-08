@@ -5,6 +5,7 @@ import moe.plushie.armourers_workshop.loom.core.task.LoomTestTask
 import moe.plushie.armourers_workshop.loom.core.task.SignJarTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.compile.JavaCompile
 
 class CocoonPlugin implements Plugin<Project> {
@@ -63,16 +64,27 @@ class CocoonPlugin implements Plugin<Project> {
             }
         }
 
-        if (project.minecraft_version_number == 11605) {
+        if (project.minecraft_version_number <= 11605) {
             fixes(project)
             downgrade(project)
         }
     }
 
     void fixes(Project project) {
+        // force set the dependency version.
         project.configurations.configureEach {
+            it.resolutionStrategy.eachDependency {
+                if (it.requested.group == "org.ow2.asm") {
+                    it.useVersion("9.9")
+                    it.because("Force ASM to a modern version that supports Java 21")
+                }
+                if (it.requested.group == "org.lwjgl") {
+                    it.useVersion("3.3.3")
+                    it.because("Force LWJGL to a modern version that supports Java 21")
+                }
+            }
             it.resolutionStrategy {
-                it.force "net.fabricmc:fabric-loader:0.15.10"
+                it.force "net.fabricmc:fabric-loader:${project.rootProject.fabric_loader_version}"
             }
         }
 
@@ -87,15 +99,13 @@ class CocoonPlugin implements Plugin<Project> {
             return
         }
 
+        // force the java version to 8.
+        project.rootProject.java_version = 8
+
         project.dependencies {
             // add downgrade plugin in the compile time.
             it.annotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
             it.testAnnotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
-        }
-
-        project.tasks.withType(JavaCompile) {
-            // force output java version to java 8.
-            it.options.release = 8
         }
 
         project.processResources {
