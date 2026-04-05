@@ -1,4 +1,4 @@
-package moe.plushie.armourers_workshop.loom.core.agent;
+package net.cocoonmc.loom.core.agent;
 
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
@@ -23,12 +23,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unused")
-public class LoomTestAgent implements Runnable {
+public class TestAgent implements Runnable {
 
     private String address = "localhost";
     private int port = 5210;
 
-    public LoomTestAgent(String[] args) {
+    public TestAgent(String[] args) {
         //-Dname=value
         parseProperty(args, (key, value) -> {
             var decodedValue = URLDecoder.decode(value, StandardCharsets.UTF_8);
@@ -148,8 +148,8 @@ public class LoomTestAgent implements Runnable {
     }
 
 
-    private LoomTestResult encode(TestExecutionSummary summary) throws IOException {
-        var result = new LoomTestResult();
+    private TestAgentResult encode(TestExecutionSummary summary) throws IOException {
+        var result = new TestAgentResult();
         result.timeStarted = summary.getTimeStarted();
         result.timeFinished = summary.getTimeFinished();
         result.containersFound = summary.getContainersFoundCount();
@@ -166,7 +166,7 @@ public class LoomTestAgent implements Runnable {
         result.testsFailed = summary.getTestsFailedCount();
         result.failures = new ArrayList<>();
         for (var failure : summary.getFailures()) {
-            result.failures.add(new LoomTestResult.Failure(failure.getTestIdentifier().toString(), failure.getException()));
+            result.failures.add(new TestAgentResult.Failure(failure.getTestIdentifier().toString(), failure.getException()));
         }
 
         var printContents = new StringWriter();

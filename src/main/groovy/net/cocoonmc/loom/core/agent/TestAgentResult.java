@@ -1,4 +1,4 @@
-package moe.plushie.armourers_workshop.loom.core.agent;
+package net.cocoonmc.loom.core.agent;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -8,7 +8,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoomTestResult {
+public class TestAgentResult {
 
     public long containersFound;
     public long containersStarted;
@@ -31,10 +31,10 @@ public class LoomTestResult {
     public String printContents = "";
     public String printFailuresContents = "";
 
-    public LoomTestResult() {
+    public TestAgentResult() {
     }
 
-    public LoomTestResult(ObjectInputStream in) throws IOException {
+    public TestAgentResult(ObjectInputStream in) throws IOException {
         containersFound = in.readLong();
         containersStarted = in.readLong();
         containersSkipped = in.readLong();

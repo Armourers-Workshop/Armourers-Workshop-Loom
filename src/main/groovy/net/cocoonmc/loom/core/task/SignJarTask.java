@@ -1,7 +1,8 @@
-package moe.plushie.armourers_workshop.loom.core.task;
+package net.cocoonmc.loom.core.task;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
@@ -14,7 +15,7 @@ import java.nio.file.Files;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 
-@SuppressWarnings("unused")
+@CacheableTask
 public abstract class SignJarTask extends DefaultTask {
 
     @Input
@@ -40,13 +41,13 @@ public abstract class SignJarTask extends DefaultTask {
 
     @TaskAction
     public void exec() throws IOException {
-        var remapJar = (AbstractArchiveTask) getProject().getTasks().getAt("remapJar");
+        var archiveTask = (AbstractArchiveTask) getExtensions().findByName("archiveTask");
         var store = getKeyStore().getOrNull();
-        if (store == null || store.isEmpty()) {
+        if (store == null || store.isEmpty() || archiveTask == null) {
             setDidWork(false);
             return;
         }
-        var target = remapJar.getArchiveFile().get().getAsFile();
+        var target = archiveTask.getArchiveFile().get().getAsFile();
         var tmp = File.createTempFile("aw2-store-", ".jks");
         Files.write(tmp.toPath(), Base64.getDecoder().decode(store));
         var args = new LinkedHashMap<String, Serializable>();
@@ -59,5 +60,11 @@ public abstract class SignJarTask extends DefaultTask {
         args.put("storepass", getKeyStorePass().getOrNull());
         getAnt().invokeMethod("signjar", args);
         tmp.delete();
+    }
+
+    public SignJarTask add(AbstractArchiveTask object) {
+        object.finalizedBy(this);
+        getExtensions().add("archiveTask", object);
+        return this;
     }
 }

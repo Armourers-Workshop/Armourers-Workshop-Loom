@@ -1,6 +1,6 @@
-package moe.plushie.armourers_workshop.loom.core;
+package net.cocoonmc.loom.core;
 
-import moe.plushie.armourers_workshop.loom.core.agent.LoomTestResult;
+import net.cocoonmc.loom.core.agent.TestAgentResult;
 import org.gradle.api.logging.Logger;
 
 import java.io.BufferedInputStream;
@@ -13,11 +13,11 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.List;
 
-public class LoomTestServer implements AutoCloseable {
+public class TestServer implements AutoCloseable {
 
     private final ServerSocket socket;
 
-    public LoomTestServer(int port) throws IOException {
+    public TestServer(int port) throws IOException {
         this.socket = new ServerSocket(port);
     }
 
@@ -66,7 +66,7 @@ public class LoomTestServer implements AutoCloseable {
             this.inputStream = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
         }
 
-        public LoomTestResult run(List<String> classes, List<String> packages) throws IOException {
+        public TestAgentResult run(List<String> classes, List<String> packages) throws IOException {
             outputStream.writeUTF("RUN");
             outputStream.writeUTF(String.join(";", classes));
             outputStream.writeUTF(String.join(";", packages));
@@ -93,7 +93,7 @@ public class LoomTestServer implements AutoCloseable {
             return logger;
         }
 
-        private LoomTestResult poll() throws IOException {
+        private TestAgentResult poll() throws IOException {
             while (true) {
                 var command = inputStream.readUTF();
                 switch (command) {
@@ -107,7 +107,7 @@ public class LoomTestServer implements AutoCloseable {
                         }
                     }
                     case "TEST_END" -> {
-                        return new LoomTestResult(inputStream);
+                        return new TestAgentResult(inputStream);
                     }
                 }
             }

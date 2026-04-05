@@ -1,0 +1,28 @@
+package net.cocoonmc.loom.core;
+
+public class Version {
+
+    // example: 1.18.2-SNAPSHOT) => 18.2-SNAPSHOT => 18.2 => 18|02|00 => 180200 - 1 => 180199
+    public static int parse(String version, int undefined) {
+        // check the limiter offset.
+        var offset = 0;
+        if (version.startsWith("(") || version.endsWith(")")) {
+            if (version.length() == 1) {
+                return undefined;
+            }
+            offset = 1;
+        }
+        // remove limiter: 1.18.2-SNAPSHOT
+        // remove 1. part: 18.2-SNAPSHOT
+        // remove -SNAPSHOT part: 1.18.2
+        // split version part to major, minor, patch: 18, 2
+        var versions = version.replaceAll("[()\\[\\]]", "").replaceFirst("^1\\.", "").split("-")[0].split("\\.");
+
+        // combine the all version part: 180200
+        // apply the limiter offset: 180199
+        var major = Integer.parseInt(versions.length > 0 ? versions[0] : "0");
+        var minor = Integer.parseInt(versions.length > 1 ? versions[1] : "0");
+        var patch = Integer.parseInt(versions.length > 2 ? versions[2] : "0");
+        return Integer.parseInt(String.format("%d%02d%02d", major, minor, patch)) - offset;
+    }
+}

@@ -1,16 +1,19 @@
-package moe.plushie.armourers_workshop.loom.core.task;
+package net.cocoonmc.loom.core.task;
 
-import moe.plushie.armourers_workshop.loom.CocoonPlugin;
-import moe.plushie.armourers_workshop.loom.core.LoomTestServer;
+import net.cocoonmc.loom.CocoonPlugin;
+import net.cocoonmc.loom.core.TestServer;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.process.internal.DefaultJavaExecSpec;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,10 +24,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
-@SuppressWarnings("unused")
-public abstract class LoomTestTask extends JavaExec {
+@CacheableTask
+public abstract class TestTask extends JavaExec {
 
     @Input
     public abstract ListProperty<String> getTestPackages();
@@ -32,25 +36,25 @@ public abstract class LoomTestTask extends JavaExec {
     @Input
     public abstract ListProperty<String> getTestClasses();
 
-    public LoomTestTask() {
+    public TestTask() {
         setGroup("loom");
         setDescription("Starts the " + getType().toLowerCase() + " test with run configuration");
         setDependsOn(getProxyTask().getDependsOn());
     }
 
-    public LoomTestTask selectClass(String... classes) {
+    public TestTask selectClass(String... classes) {
         getTestClasses().addAll(classes);
         return this;
     }
 
-    public LoomTestTask selectPackage(String... packages) {
+    public TestTask selectPackage(String... packages) {
         getTestPackages().addAll(packages);
         return this;
     }
 
     @Override
     public void exec() {
-        try (var server = new LoomTestServer(0)) {
+        try (var server = new TestServer(0)) {
             // prepares the Java execution specification for running tests with the LoomTestAgent.
             var execSpec = getObjectFactory().newInstance(DefaultJavaExecSpec.class);
             copyTo(execSpec);
@@ -60,7 +64,7 @@ public abstract class LoomTestTask extends JavaExec {
                 execSpec.classpath(getRuntimeClasspath(getCommonProject()));
             }
             if (!execSpec.getMainClass().isPresent()) {
-                execSpec.getMainClass().set("moe.plushie.armourers_workshop.loom.core.agent.LoomTestAgent");
+                execSpec.getMainClass().set("net.cocoonmc.loom.core.agent.TestAgent");
                 execSpec.classpath(getClass().getProtectionDomain().getCodeSource().getLocation());
             }
             execSpec.systemProperty("junit.dli.task.name", getName());
@@ -100,7 +104,7 @@ public abstract class LoomTestTask extends JavaExec {
         }
     }
 
-    protected void handle(LoomTestServer.Controller controller) throws IOException {
+    protected void handle(TestServer.Controller controller) throws IOException {
         // run test with all selectors.
         controller.setLogger(getLogger());
         var results = controller.run(getTestClasses().get(), getTestPackages().get());
@@ -132,10 +136,9 @@ public abstract class LoomTestTask extends JavaExec {
         } else {
             configFile.getParentFile().mkdirs();
         }
-        var jvmArgs = new ArrayList<String>();
-        spec.getJvmArgs().forEach(jvmArgs::add);
+        var jvmArgs = new ArrayList<>(spec.getJvmArgs());
         spec.getSystemProperties().forEach((key, value) -> {
-            var encodedValue = URLEncoder.encode(value.toString(), StandardCharsets.UTF_8);
+            var encodedValue = URLEncoder.encode(Objects.requireNonNullElse(value, "").toString(), StandardCharsets.UTF_8);
             jvmArgs.add(String.format("-D%s=%s", key, encodedValue));
         });
 
@@ -148,7 +151,7 @@ public abstract class LoomTestTask extends JavaExec {
     }
 
     protected FileCollection getRuntimeClasspath(Project project) {
-        var sourceSets = (SourceSetContainer) project.getProperties().get("sourceSets");
+        var sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
         return sourceSets.getAt("test").getRuntimeClasspath();
     }
 }

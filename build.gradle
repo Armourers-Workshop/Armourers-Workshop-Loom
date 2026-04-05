@@ -1,0 +1,76 @@
+plugins {
+    id "base"
+    id "maven-publish"
+    id "groovy-gradle-plugin"
+}
+
+repositories {
+    mavenLocal()
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.architectury.dev/" }
+    maven { url "https://maven.minecraftforge.net/" }
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    compileOnly gradleApi()
+    compileOnly localGroovy()
+
+    // https://linkie.shedaniel.dev/mappings
+    // https://linkie.shedaniel.dev/dependencies
+    implementation "dev.architectury:architectury-loom:1.14-SNAPSHOT"
+    implementation "architectury-plugin:architectury-plugin.gradle.plugin:3.5-SNAPSHOT"
+//    implementation "dev.architectury:architectury-loom:1.13.467"
+//    implementation "architectury-plugin:architectury-plugin.gradle.plugin:3.4.162"
+
+//    implementation "com.xpdustry:jabel:1.1.0"
+//    runtimeOnly "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
+//    it.annotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
+//    it.testAnnotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
+
+    compileOnly "org.apache.logging.log4j:log4j-api:2.22.1"
+
+    compileOnly "org.junit.jupiter:junit-jupiter:5.10.0"
+    compileOnly "org.junit.platform:junit-platform-engine:1.10.2"
+    compileOnly "org.junit.platform:junit-platform-launcher:1.10.2"
+}
+
+group = "net.cocoonmc"
+version = "1.2"
+
+base {
+    archivesName = "cocoon-loom"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+gradlePlugin {
+    plugins {
+        loom {
+            id = "cocoon-loom"
+            displayName = "Minecraft Cocoon Loom"
+            implementationClass = 'net.cocoonmc.loom.CocoonPlugin'
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url "https://repo.repsy.io/mvn/sagesse/core"
+            credentials {
+                username System.getenv("REPSY_ACTOR")
+                password System.getenv("REPSY_TOKEN")
+            }
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}

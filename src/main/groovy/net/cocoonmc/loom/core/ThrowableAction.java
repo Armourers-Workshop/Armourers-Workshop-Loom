@@ -1,4 +1,4 @@
-package moe.plushie.armourers_workshop.loom.core;
+package net.cocoonmc.loom.core;
 
 @FunctionalInterface
 public interface ThrowableAction<T> {
