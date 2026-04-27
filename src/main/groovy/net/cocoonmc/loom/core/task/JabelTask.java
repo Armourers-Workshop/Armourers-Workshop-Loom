@@ -2,7 +2,10 @@ package net.cocoonmc.loom.core.task;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.work.DisableCachingByDefault;
@@ -11,7 +14,15 @@ import java.util.List;
 import java.util.Objects;
 
 @DisableCachingByDefault(because = "This task will configure the project properties and dependencies for Jabel integration.")
-public class JabelTask extends DefaultTask implements Action<Object> {
+public abstract class JabelTask extends DefaultTask implements Action<Object> {
+
+    @Input
+    @Optional
+    public abstract Property<String> getApi();
+
+    @Input
+    @Optional
+    public abstract Property<String> getVersion();
 
     public JabelTask() {
         // this feature is turned off by default.
@@ -26,6 +37,9 @@ public class JabelTask extends DefaultTask implements Action<Object> {
             return;
         }
         getLogger().info("Applying Jabel Integration.");
+
+        // add downgrade plugin maven repo.
+        getProject().getRepositories().maven(it -> it.setUrl(resolveFileRepository()));
 
         // add downgrade plugin in the compile time.
         getProject().getDependencies().add("annotationProcessor", resolveFileDependency());
@@ -68,6 +82,12 @@ public class JabelTask extends DefaultTask implements Action<Object> {
     }
 
     private Object resolveFileDependency() {
-        return "com.pkware.jabel:jabel-javac-plugin:1.0.1-1";
+        var api = getApi().getOrElse("com.xpdustry:jabel");
+        var version = getVersion().getOrElse("1.1.0");
+        return api + ":" + version;
+    }
+
+    private Object resolveFileRepository() {
+        return "https://maven.xpdustry.com/releases/";
     }
 }

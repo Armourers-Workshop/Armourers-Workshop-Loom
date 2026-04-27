@@ -235,30 +235,6 @@ class PlatformSetup implements Action<CocoonSettings> {
                 it.dependsOn project.tasks.named("compileTestJava")
             }
         }
-
-//        void setupJabelTasks() {
-//            var jabel = project.jabel as DefaultTask
-//            if (!jabel.enabled || cocoon.runOnIDE) {
-//                return
-//            }
-//            println("setup jabel")
-//            // force the java version to 8.
-//            project.rootProject.java_version = 8
-//
-//            // add downgrade plugin in the compile time.
-//            project.dependencies.add("annotationProcessor", "com.pkware.jabel:jabel-javac-plugin:1.0.1-1")
-//            project.dependencies.add("testAnnotationProcessor", "com.pkware.jabel:jabel-javac-plugin:1.0.1-1")
-//
-//            project.processResources {
-//                // fix compatibility level to java 8 in mixin json.
-//                it.inputs.property('compatibilityLevel', 8)
-//                it.filesMatching("*-mixins.json") {
-//                    it.filter {
-//                        it.replaceAll(/("compatibilityLevel\"\s*:\s*")(JAVA_\d+)(")/, /$1JAVA_8$3/)
-//                    }
-//                }
-//            }
-//        }
     }
 
     private class WithoutObfuscationExternal extends ObfuscationExternal {

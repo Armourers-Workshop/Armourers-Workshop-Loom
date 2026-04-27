@@ -24,11 +24,6 @@ dependencies {
 //    implementation "dev.architectury:architectury-loom:1.13.467"
 //    implementation "architectury-plugin:architectury-plugin.gradle.plugin:3.4.162"
 
-//    implementation "com.xpdustry:jabel:1.1.0"
-//    runtimeOnly "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
-//    it.annotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
-//    it.testAnnotationProcessor "com.pkware.jabel:jabel-javac-plugin:1.0.1-1"
-
     compileOnly "org.apache.logging.log4j:log4j-api:2.22.1"
 
     compileOnly "org.junit.jupiter:junit-jupiter:5.10.0"
@@ -37,7 +32,7 @@ dependencies {
 }
 
 group = "net.cocoonmc"
-version = "1.2"
+version = "1.3"
 
 base {
     archivesName = "cocoon-loom"
