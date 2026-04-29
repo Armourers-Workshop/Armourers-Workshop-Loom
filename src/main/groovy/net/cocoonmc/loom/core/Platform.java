@@ -15,6 +15,14 @@ public enum Platform {
         this.name = name;
     }
 
+    public boolean isFabricLike() {
+        return this == FABRIC;
+    }
+
+    public boolean isForgeLike() {
+        return this == FORGE || this == NEOFORGE;
+    }
+
     public static Platform by(Project project) {
         var value = project.findProperty("loom.platform");
         if ("fabric".equals(value)) {

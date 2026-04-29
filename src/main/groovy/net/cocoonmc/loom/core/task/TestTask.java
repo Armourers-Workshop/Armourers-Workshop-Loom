@@ -13,7 +13,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.process.internal.DefaultJavaExecSpec;
-import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.FileOutputStream;

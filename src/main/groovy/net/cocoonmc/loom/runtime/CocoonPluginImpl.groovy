@@ -1,10 +1,7 @@
 package net.cocoonmc.loom.runtime
 
 import net.cocoonmc.loom.api.CocoonExtension
-import net.cocoonmc.loom.core.task.ConfigTask
-import net.cocoonmc.loom.core.task.JabelTask
-import net.cocoonmc.loom.core.task.SignJarTask
-import net.cocoonmc.loom.core.task.TestTask
+import net.cocoonmc.loom.core.task.*
 import net.cocoonmc.loom.runtime.setup.MinecraftSetup
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -45,6 +42,7 @@ class CocoonPluginImpl {
         // create the compile tasks.
         project.tasks.register("jabel", JabelTask)
         project.tasks.register("signJar", SignJarTask)
+        project.tasks.register("injectJar", InjectJarTask)
         project.tasks.register("processMixinResources", ConfigTask)
 
         // setup the evaluate tasks.

@@ -31,7 +31,7 @@ class PlatformSetup implements Action<CocoonSettings> {
 
         // link the access widener to the common project.
         settings.accessWidenerPath.convention(commonProject.loom.accessWidenerPath)
-        cocoon.loom.accessWidenerPath.convention(settings.accessWidenerPath)
+        cocoon.loom.accessWidenerPath.set(settings.accessWidenerPath)
 
         // call the details actions.
         detailsAction.execute(settings)
@@ -73,7 +73,7 @@ class PlatformSetup implements Action<CocoonSettings> {
     private Object getCommonDependency(Map<String, ?> notation) {
         var values = Map.of("path", commonProject.path)
         var dep = project.dependencies.project(values + notation) as ModuleDependency
-        dep.setTransitive(true)
+        dep.setTransitive(false)
         return dep
     }
 
@@ -136,6 +136,14 @@ class PlatformSetup implements Action<CocoonSettings> {
             }
             cocoon.loom.forge {
                 it.convertAccessWideners.set(true)
+            }
+
+            // force set the asm dependency version.
+            cocoon.resolutionStrategy.eachDependency {
+                if (it.requested.group == "org.ow2.asm") {
+                    it.useVersion("9.9")
+                    it.because("Force ASM to a modern version that supports Java 25")
+                }
             }
         }
     }
@@ -255,8 +263,10 @@ class PlatformSetup implements Action<CocoonSettings> {
             project.shadowJar {
                 it.dependsOn project.jar
 
-                it.from project.zipTree(project.jar.archiveFile)
+                // must clear first.
                 it.mainSpec.sourcePaths.clear()
+
+                it.from project.zipTree(project.jar.archiveFile)
 
                 it.configurations = [project.configurations.shadowCommon]
                 it.archiveClassifier = null // write to jar
@@ -270,6 +280,11 @@ class PlatformSetup implements Action<CocoonSettings> {
 
             project.signJar {
                 it.add project.shadowJar
+            }
+
+            project.injectJar {
+                it.dependsOn project.shadowJar
+                it.injectAccessWidener = true
             }
         }
 

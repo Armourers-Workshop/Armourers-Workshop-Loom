@@ -25,4 +25,31 @@ public class Version {
         var patch = Integer.parseInt(versions.length > 2 ? versions[2] : "0");
         return Integer.parseInt(String.format("%d%02d%02d", major, minor, patch)) - offset;
     }
+
+    public static int compare(String a, String b) {
+        var aParts = a.split("[.\\-+_]");
+        var bParts = b.split("[.\\-+_]");
+        var length = Math.max(aParts.length, bParts.length);
+
+        for (int i = 0; i < length; ++i) {
+            var aPart = i < aParts.length ? aParts[i] : "0";
+            var bPart = i < bParts.length ? bParts[i] : "0";
+            var aNumber = aPart.matches("\\d+");
+            var bNumber = bPart.matches("\\d+");
+            int result;
+
+            if (aNumber && bNumber) {
+                result = Long.compare(Long.parseLong(aPart), Long.parseLong(bPart));
+            } else if (aNumber != bNumber) {
+                result = aNumber ? 1 : -1;
+            } else {
+                result = aPart.compareTo(bPart);
+            }
+
+            if (result != 0) {
+                return result;
+            }
+        }
+        return 0;
+    }
 }

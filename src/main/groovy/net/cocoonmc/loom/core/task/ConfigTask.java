@@ -1,5 +1,10 @@
 package net.cocoonmc.loom.core.task;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.cocoonmc.loom.api.CocoonExtension;
 import net.cocoonmc.loom.core.Platform;
 import net.cocoonmc.loom.runtime.CocoonExtensionImpl;
@@ -10,7 +15,6 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -20,11 +24,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 @DisableCachingByDefault(because = "This task does not produce any output files that can be cached, as it only searches for specific files and does not perform any operations that would benefit from caching.")
 public class ConfigTask extends DefaultTask implements Action<Object> {
+
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private LinkedHashMap<String, List<File>> allFiles = null;
 
@@ -63,19 +70,19 @@ public class ConfigTask extends DefaultTask implements Action<Object> {
         getProject().getTasks().named("processResources", ProcessResources.class).configure(task -> {
             task.getInputs().property(getName() + ".files", getOutputFiles().getFiles());
             task.filesMatching("fabric.mod.json", details -> {
-                var mixins = new StringBuilder();
+                var mixins = new JsonArray();
                 getOutputFiles().forEach(file -> {
-                    if (!mixins.isEmpty()) {
-                        mixins.append(", ");
-                    }
-                    mixins.append("\"").append(file.getName()).append("\"");
+                    mixins.add(file.getName());
                 });
-                transformText(details, results -> {
-                    results = results.replaceAll("(?sim)(\"mixins\"\\s*:\\s*\\[\\s*)(.+?)(\\s*])", "$1" + mixins + "$3");
+                transformJson(details, json -> {
+                    json.add("mixins", mixins);
                     if (getCocoon().getMinecraftNumber() < 180000) {
-                        results = results.replaceAll("(?sim)(\"depends\"\\s*:\\s*\\{\\s*)(.+?)(\"fabric-api\")(.+?)(\\s*})", "$1$2" + "\"fabric\"" + "$4$5");
+                        var depends = json.getAsJsonObject("depends");
+                        if (depends != null && depends.has("fabric-api")) {
+                            var value = depends.remove("fabric-api");
+                            depends.add("fabric", value);
+                        }
                     }
-                    return results;
                 });
             });
         });
@@ -133,6 +140,14 @@ public class ConfigTask extends DefaultTask implements Action<Object> {
         return allFiles;
     }
 
+
+    private void transformJson(FileCopyDetails details, Consumer<JsonObject> transformer) {
+        transformText(details, contents -> {
+            var json = JsonParser.parseString(contents).getAsJsonObject();
+            transformer.accept(json);
+            return GSON.toJson(json);
+        });
+    }
 
     private void transformText(FileCopyDetails details, Function<String, String> transformer) {
         var results = new StringBuilder();

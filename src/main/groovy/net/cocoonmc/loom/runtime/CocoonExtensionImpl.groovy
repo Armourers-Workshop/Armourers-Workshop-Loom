@@ -4,6 +4,7 @@ import dev.architectury.plugin.ArchitectPluginExtension
 import net.cocoonmc.loom.api.CocoonExtension
 import net.cocoonmc.loom.api.CocoonSettings
 import net.cocoonmc.loom.core.Platform
+import net.cocoonmc.loom.core.ResolutionStrategy
 import net.cocoonmc.loom.core.Version
 import net.cocoonmc.loom.runtime.setup.CommonSetup
 import net.cocoonmc.loom.runtime.setup.PlatformSetup
@@ -11,8 +12,6 @@ import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Internal
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 
 class CocoonExtensionImpl implements CocoonExtension {
 
@@ -95,6 +94,10 @@ class CocoonExtensionImpl implements CocoonExtension {
 
     ArchitectPluginExtension getArchitectury() {
         return project.extensions.getByType(ArchitectPluginExtension.class)
+    }
+
+    ResolutionStrategy getResolutionStrategy() {
+        return new ResolutionStrategy(project, platform)
     }
 
     Object resolveApiDependency(CocoonSettings settings) {
